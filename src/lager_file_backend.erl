@@ -70,7 +70,7 @@
         sync_interval = ?DEFAULT_SYNC_INTERVAL :: non_neg_integer(),
         sync_size = ?DEFAULT_SYNC_SIZE :: non_neg_integer(),
         last_check = os:timestamp() :: erlang:timestamp(),
-        rotate_type = number :: atom(),
+        rotate_type = number :: number | time | atom() ,
         rotate_target :: undefined | string()
     }).
 

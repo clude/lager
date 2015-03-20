@@ -260,12 +260,12 @@ parse_rotation_day_spec([], Res) ->
     {ok, Res ++ [{hour, 0}]};
 parse_rotation_day_spec([$m, Mi1, Mi2], Res) ->
     case list_to_integer([Mi1, Mi2]) of
-        X when X >= 0, X =< 59 ->
+        X when X >= 1, X =< 59 ->
             {ok, Res ++ [{eminute, X}]};  % eminute means every minute
         _ ->
             {error, invalid_date_spec}
     end;
-parse_rotation_day_spec([$m, Mi], Res)  when Mi >= $0, Mi =< $9 ->
+parse_rotation_day_spec([$m, Mi], Res)  when Mi >= $1, Mi =< $9 ->
     {ok, Res ++ [{eminute, Mi - 48}]};
 parse_rotation_day_spec([$D, D1, D2], Res) ->
     case list_to_integer([D1, D2]) of

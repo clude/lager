@@ -105,6 +105,15 @@ for the backend:
     {lager_file_backend, [{file, "error.log"}, {level, error}, {formatter, lager_default_formatter},
       {formatter_config, [date, " ", time," [",severity,"] ",pid, " ", message, "\n"]}]},
     {lager_file_backend, [{file, "console.log"}, {level, info}]}
+  ]},
+
+  {traces, [
+    {
+      {lager_file_backend, "./logs/trace.log"},
+      [{type, trade}],
+      info,
+      [{size, 10000000}, {count, 5}, {date, "$m5"}, {rotate_type, time}, {rotate_target, "./logs/r_trace.log"}]
+    }
   ]}
 ]}.
 ```
@@ -243,11 +252,12 @@ The relevant extract follows:
 Day, week and month time format: The lead-in character
 for day, week and month specification is a `$'-sign.
 The particular format of day, week and month
-specification is: [Dhh], [Ww[Dhh]] and [Mdd[Dhh]],
+specification is: [mhh], [Dhh], [Ww[Dhh]] and [Mdd[Dhh]],
 respectively.  Optional time fields default to
 midnight.  The ranges for day and hour specifications
 are:
 
+  tt      minutes, range 1 ... 59
   hh      hours, range 0 ... 23
   w       day of week, range 0 ... 6, 0 = Sunday
   dd      day of month, range 1 ... 31, or the
@@ -255,6 +265,7 @@ are:
           the month.
 
 Some examples:
+  $m5     rotate every 5 minutes
   $D0     rotate every night at midnight
   $D23    rotate every day at 23:00 hr
   $W0D23  rotate every week on Sunday at 23:00 hr
