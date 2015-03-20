@@ -26,7 +26,7 @@
 -export([start/0,
         log/3, log/4,
         md/0, md/1,
-        trace/2, trace/3, trace_file/2, trace_file/3, trace_file/4, trace_console/1, trace_console/2,
+        trace/2, trace/3, trace/4, trace_file/2, trace_file/3, trace_file/4, trace_console/1, trace_console/2,
         clear_all_traces/0, stop_trace/1, stop_trace/3, status/0,
         get_loglevel/1, set_loglevel/2, set_loglevel/3, get_loglevels/0,
         update_loglevel_config/0, posix_error/1,
@@ -196,6 +196,9 @@ trace(Backend, Filter, Level) ->
         Error ->
             Error
     end.
+
+trace({lager_file_backend, File}, Filter, Level, Options) ->
+    trace_file(File, Filter, Level, Options).
 
 stop_trace(Backend, Filter, Level) ->
     Trace0 = {Filter, Level, Backend},

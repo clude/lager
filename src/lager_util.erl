@@ -19,7 +19,7 @@
 -include_lib("kernel/include/file.hrl").
 
 -export([levels/0, level_to_num/1, num_to_level/1, config_to_mask/1, config_to_levels/1, mask_to_levels/1,
-        open_logfile/2, ensure_logfile/4, rotate_logfile/2, format_time/0, format_time/1,
+        open_logfile/2, ensure_logfile/4, rotate_logfile/2,rotate_logfile/4, format_time/0, format_time/1,
         localtime_ms/0, localtime_ms/1, maybe_utc/1, parse_rotation_date_spec/1,
         calculate_next_rotation/1, validate_trace/1, check_traces/4, is_loggable/3,
         trace_filter/1, trace_filter/2, expand_path/1]).
@@ -195,6 +195,37 @@ maybe_utc({Date, {H, M, S, Ms}}) ->
             {Date1, {H1, M1, S1, Ms}}
     end.
 
+get_datetime_str() ->
+    {{Year,Month,Day},{Hour,Min,Sec}} = calendar:local_time(),
+    io_lib:format("~4.10.0B~2.10.0B~2.10.0B~2.10.0B~2.10.0B~2.10.0B", [Year, Month, Day, Hour, Min, Sec]).
+
+rotate_logfile(File, RotateType, Count, undefined) ->
+    rotate_logfile(File, RotateType, Count, File);
+rotate_logfile(File, number, Count, TargetFile) ->
+    rotate_logfile(File, Count, TargetFile);
+rotate_logfile(File, time, _Count, TargetFile) ->
+    case file:rename(File, TargetFile++"."++get_datetime_str()) of
+        ok ->
+            ok;
+        _ ->
+            file:delete(File)
+    end.
+
+%% renames failing are OK
+rotate_logfile(File, 0, _TargetFile) ->
+    file:delete(File);
+rotate_logfile(File, 1, TargetFile) ->
+    case file:rename(File, TargetFile++".0") of
+        ok ->
+            ok;
+        _ ->
+            rotate_logfile(File, 0, TargetFile)
+    end;
+rotate_logfile(File, Count, TargetFile) ->
+    _ = file:rename(TargetFile ++ "." ++ integer_to_list(Count - 2), TargetFile ++ "." ++ integer_to_list(Count - 1)),
+    rotate_logfile(File, Count - 1, TargetFile).
+
+
 %% renames failing are OK
 rotate_logfile(File, 0) ->
     file:delete(File);
@@ -227,6 +258,15 @@ format_time({{Y, M, D}, {H, Mi, S}}) ->
 
 parse_rotation_day_spec([], Res) ->
     {ok, Res ++ [{hour, 0}]};
+parse_rotation_day_spec([$m, Mi1, Mi2], Res) ->
+    case list_to_integer([Mi1, Mi2]) of
+        X when X >= 0, X =< 59 ->
+            {ok, Res ++ [{eminute, X}]};  % eminute means every minute
+        _ ->
+            {error, invalid_date_spec}
+    end;
+parse_rotation_day_spec([$m, Mi], Res)  when Mi >= $0, Mi =< $9 ->
+    {ok, Res ++ [{eminute, Mi - 48}]};
 parse_rotation_day_spec([$D, D1, D2], Res) ->
     case list_to_integer([D1, D2]) of
         X when X >= 0, X =< 23 ->
@@ -276,6 +316,11 @@ calculate_next_rotation(Spec) ->
 
 calculate_next_rotation([], Now) ->
     Now;
+calculate_next_rotation([{eminute, X}|_T], Now) ->
+    %% rotation by minute setting
+    Seconds = calendar:datetime_to_gregorian_seconds(Now) + 60 * X,
+    DateTime = calendar:gregorian_seconds_to_datetime(Seconds),
+    calculate_next_rotation([], DateTime);
 calculate_next_rotation([{hour, X}|T], {{_, _, _}, {Hour, _, _}} = Now) when Hour < X ->
     %% rotation is today, sometime
     NewNow = setelement(2, Now, {X, 0, 0}),

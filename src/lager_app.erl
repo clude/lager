@@ -145,8 +145,11 @@ add_configured_traces() ->
             TraceVal
     end,
 
-    lists:foreach(fun({Handler, Filter, Level}) ->
-                {ok, _} = lager:trace(Handler, Filter, Level)
+    lists:foreach(
+        fun({Handler, Filter, Level}) ->
+                {ok, _} = lager:trace(Handler, Filter, Level);
+            ({Handler, Filter, Level, Options}) ->
+                {ok, _} = lager:trace(Handler, Filter, Level, Options)
         end,
         Traces),
     ok.
