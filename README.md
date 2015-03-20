@@ -235,7 +235,7 @@ use internal rotation, use the `size`, `date` and `count` values in the file
 backend's config:
 
 ```erlang
-[{file, "error.log"}, {level, error}, {size, 10485760}, {date, "$D0"}, {count, 5}]
+[{file, "error.log"}, {level, error}, {size, 10485760}, {date, "$D0"}, {count, 5}, {rotate_type, number}, {rotate_target, "r_error.log"} ]
 ```
 
 This tells lager to log error and above messages to `error.log` and to
@@ -245,6 +245,14 @@ count to 0 does not disable rotation, it instead rotates the file and keeps
 no previous versions around. To disable rotation set the size to 0 and the
 date to "".
 
+`rotate_target` format:
+empty means do not rename the rotated file to other names, we keep using the same name `error.log`
+string like `./log/t_error.log` means the rotated file will be changed `./log/t_error.log`
+
+`rotate_type` format: 
+`number` means keep current Count feature, the rotated file name will be `t_error.log.0`
+`time` means appending timestamp to the rotated file, the file name will be changed to `t_error.log.20150315120101`
+
 The `$D0` syntax is taken from the syntax newsyslog uses in newsyslog.conf.
 The relevant extract follows:
 
@@ -252,7 +260,7 @@ The relevant extract follows:
 Day, week and month time format: The lead-in character
 for day, week and month specification is a `$'-sign.
 The particular format of day, week and month
-specification is: [mhh], [Dhh], [Ww[Dhh]] and [Mdd[Dhh]],
+specification is: [mtt], [Dhh], [Ww[Dhh]] and [Mdd[Dhh]],
 respectively.  Optional time fields default to
 midnight.  The ranges for day and hour specifications
 are:
