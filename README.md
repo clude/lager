@@ -249,18 +249,18 @@ date to "".
 `rotate_target` format:
 
 ```
-empty means do not rename the rotated file to other names, we keep using
+empty: do not rename the rotated file to other names, we keep using
  the same name `error.log`
 
-string like `./log/t_error.log` means the rotated file will be changed `./log/t_error.log`
+string like `./log/t_error.log`: the rotated file will be changed to `./log/t_error.log`
 ```
 
 `rotate_type` format:
 
 ```
-`number` means keep current Count feature, the rotated file name will be `t_error.log.0`
+`number`: keep current Count feature, the rotated file name will be `t_error.log.0`
 
-`time` means appending timestamp to the rotated file, the file name will
+`time`: appending timestamp to the rotated file, the file name will
  be changed to `t_error.log.20150315120101`
 ```
 
